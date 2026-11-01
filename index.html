@@ -60,6 +60,7 @@ function call(a,d){d=d||{};d.action=a;if(S.tok&&!d.token)d.token=S.tok;
 function dt(x){try{var d=new Date(x);return d.toLocaleDateString('it-IT',{day:'2-digit',month:'short'})}catch(e){return ''}}
 function html(h){M.innerHTML=h}
 var q=new URLSearchParams(location.search), COD=(q.get('c')||'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,10);
+var CA=(q.get('a')||'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,12);try{if(CA)localStorage.setItem('uw_amico_a',CA);else CA=localStorage.getItem('uw_amico_a')||''}catch(e){}
 
 /* ---------- pagina per l'amico ---------- */
 function paginaAmico(){
@@ -89,7 +90,7 @@ function accesso(reg){
   '<button class="btn sec" id="sw">'+(reg?'Ho già un account':'Non ho un account')+'</button></div>');
   document.getElementById('sw').onclick=function(){accesso(!reg)};
   document.getElementById('go').onclick=function(){var b=this;b.disabled=true;
-    var d=reg?{nome:v('n'),cognome:v('c'),telefono:v('t'),email:v('e'),pin:v('p'),consenso:ck('k')}:{telefono:v('t'),pin:v('p')};
+    var d=reg?{nome:v('n'),cognome:v('c'),telefono:v('t'),email:v('e'),pin:v('p'),consenso:ck('k'),ca:CA}:{telefono:v('t'),pin:v('p')};
     call(reg?'registra':'accedi',d).then(function(r){ if(r.ok){S.tok=r.token;try{localStorage.setItem('uw_amico_t',r.token)}catch(e){}avvia()}else{b.disabled=false;document.getElementById('er').textContent=r.errore||'Errore'} })};
 }
 
@@ -120,5 +121,5 @@ function chat(){html('<div class="card"><h2>Scrivi a un tutor</h2><div id="l" cl
   function load(){call('chat_lista').then(function(r){var l=document.getElementById('l');if(!r.ok){l.textContent=r.errore;return}l.className='';l.innerHTML=r.lista.length?r.lista.map(function(x){return '<div class="msg '+(x.da==='utente'?'u':'t')+'">'+esc(x.testo)+'</div>'}).join(''):'<span class="mu">Nessun messaggio. Scrivici pure!</span>'})}
   load();document.getElementById('go').onclick=function(){var b=this,t=v('t');if(!t.trim())return;b.disabled=true;call('chat_invia',{testo:t}).then(function(r){b.disabled=false;if(r.ok){document.getElementById('t').value='';load()}else document.getElementById('er').textContent=r.errore})}}
 
-if(COD){paginaAmico()} else if(S.tok){avvia()} else {accesso(false)}
+if(COD){paginaAmico()} else if(S.tok){avvia()} else {accesso(!!q.get('a'))}
 </script></body></html>
