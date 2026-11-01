@@ -60,7 +60,7 @@ function call(a,d){d=d||{};d.action=a;if(S.tok&&!d.token)d.token=S.tok;
 function dt(x){try{var d=new Date(x);return d.toLocaleDateString('it-IT',{day:'2-digit',month:'short'})}catch(e){return ''}}
 function html(h){M.innerHTML=h}
 var q=new URLSearchParams(location.search), COD=(q.get('c')||'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,10);
-var CA=(q.get('a')||'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,12);try{if(CA)localStorage.setItem('uw_amico_a',CA);else CA=localStorage.getItem('uw_amico_a')||''}catch(e){}
+var CA=(q.get('s')||'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,12);try{if(CA)localStorage.setItem('uw_amico_s',CA);else CA=localStorage.getItem('uw_amico_s')||''}catch(e){}
 
 /* ---------- pagina per l'amico ---------- */
 function paginaAmico(){
@@ -90,7 +90,7 @@ function accesso(reg){
   '<button class="btn sec" id="sw">'+(reg?'Ho già un account':'Non ho un account')+'</button></div>');
   document.getElementById('sw').onclick=function(){accesso(!reg)};
   document.getElementById('go').onclick=function(){var b=this;b.disabled=true;
-    var d=reg?{nome:v('n'),cognome:v('c'),telefono:v('t'),email:v('e'),pin:v('p'),consenso:ck('k'),ca:CA}:{telefono:v('t'),pin:v('p')};
+    var d=reg?{nome:v('n'),cognome:v('c'),telefono:v('t'),email:v('e'),pin:v('p'),consenso:ck('k'),sp:CA}:{telefono:v('t'),pin:v('p')};
     call(reg?'registra':'accedi',d).then(function(r){ if(r.ok){S.tok=r.token;try{localStorage.setItem('uw_amico_t',r.token)}catch(e){}avvia()}else{b.disabled=false;document.getElementById('er').textContent=r.errore||'Errore'} })};
 }
 
@@ -103,7 +103,9 @@ function home(){var p=S.p,msg=encodeURIComponent((p.messaggio||'')+' '+p.link);
   html('<div class="card cred"><div class="mu" style="color:#fff;opacity:.85">I tuoi crediti</div><div class="n">'+p.crediti+' <small>crediti</small></div><div class="stats"><div><b>'+p.segnalazioni+'</b><small>amici</small></div><div><b>'+p.iscritti+'</b><small>iscritti</small></div><div><b>'+p.crediti_totali+'</b><small>guadagnati</small></div></div></div>'+
   '<div class="card"><h2>Il tuo link personale</h2><p class="mu">Quando un amico lo apre e lascia i dati, la segnalazione è tua. Per ogni amico che si iscrive ricevi crediti pari al <b>'+p.percentuale+'%</b> dell\'importo netto (1 credito = 1 €).</p><p class="mu">Il tuo livello: <b>'+p.livello+'</b> ('+p.iscritti_mese+' iscrizioni questo mese). Da '+p.soglia_agente+' iscrizioni al mese diventi Agente, da '+p.soglia_orientatore+' Orientatore: crediti extra su ogni iscrizione.</p><div class="link" id="lk">'+esc(p.link)+'</div>'+
   '<a class="btn wa" style="text-decoration:none;text-align:center" href="https://wa.me/?text='+msg+'" target="_blank" rel="noopener">Condividi su WhatsApp</a><button class="btn sec" id="cp">Copia link</button></div>'+
+  '<div class="card"><h2>Porta altri segnalatori</h2><p class="mu">Invita altre persone a diventare segnalatori con il tuo link: entrano nella tua rete.'+(p.rete?' Segnalatori nella tua rete: <b>'+p.rete+'</b>.':'')+'</p><div class="link">'+esc(p.link_rete||'')+'</div><a class="btn wa" style="text-decoration:none;text-align:center" href="https://wa.me/?text='+encodeURIComponent('Diventa segnalatore UniAC e guadagna crediti: '+(p.link_rete||''))+'" target="_blank" rel="noopener">Invita su WhatsApp</a><button class="btn sec" id="cp2">Copia link</button></div>'+
   '<div class="card"><h2>Come funziona</h2><p>1. Mandi il tuo link a un amico.<br>2. Un tutor lo richiama, senza impegno.<br>3. Se si iscrive e paga, i crediti arrivano qui dopo 30 giorni.<br>4. Spendi i crediti nei premi.</p></div>');
+  document.getElementById('cp2').onclick=function(){var b=this;(navigator.clipboard?navigator.clipboard.writeText(p.link_rete||''):Promise.reject()).then(function(){b.textContent='Copiato ✓'}).catch(function(){b.textContent='Tieni premuto sul link'})};
   document.getElementById('cp').onclick=function(){var b=this;(navigator.clipboard?navigator.clipboard.writeText(p.link):Promise.reject()).then(function(){b.textContent='Copiato ✓'}).catch(function(){var r=document.createRange();r.selectNodeContents(document.getElementById('lk'));var s=getSelection();s.removeAllRanges();s.addRange(r);b.textContent='Seleziona e copia'})};
 }
 function amici(){html('<div class="card"><h2>I miei amici</h2><div id="l" class="mu">Caricamento...</div></div>');
@@ -121,5 +123,5 @@ function chat(){html('<div class="card"><h2>Scrivi a un tutor</h2><div id="l" cl
   function load(){call('chat_lista').then(function(r){var l=document.getElementById('l');if(!r.ok){l.textContent=r.errore;return}l.className='';l.innerHTML=r.lista.length?r.lista.map(function(x){return '<div class="msg '+(x.da==='utente'?'u':'t')+'">'+esc(x.testo)+'</div>'}).join(''):'<span class="mu">Nessun messaggio. Scrivici pure!</span>'})}
   load();document.getElementById('go').onclick=function(){var b=this,t=v('t');if(!t.trim())return;b.disabled=true;call('chat_invia',{testo:t}).then(function(r){b.disabled=false;if(r.ok){document.getElementById('t').value='';load()}else document.getElementById('er').textContent=r.errore})}}
 
-if(COD){paginaAmico()} else if(S.tok){avvia()} else {accesso(!!q.get('a'))}
+if(COD){paginaAmico()} else if(S.tok){avvia()} else {accesso(!!q.get('s'))}
 </script></body></html>
